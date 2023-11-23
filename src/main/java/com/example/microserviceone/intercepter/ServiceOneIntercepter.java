@@ -1,7 +1,7 @@
 package com.example.microserviceone.intercepter;
 
 import com.example.microserviceone.entity.ServiceOneEntity;
-import com.example.microserviceone.service.ServiceOneService;
+//import com.example.microserviceone.service.ServiceOneService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +26,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
     private WebClient.Builder builder;
 
-    @Autowired
-    private ServiceOneService serviceOneService;
+//    @Autowired
+//    private ServiceOneService serviceOneService;
 
     Date requestTime = new Date(); // Capture the current date and time
 
@@ -83,18 +83,17 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setRequestTime(dateFormat.format(requestTime));
         serviceOneEntity.setResponseTime(dateFormat.format(responseTime));
         serviceOneEntity.setStatusCode(response.getStatus());
-        serviceOneEntity.setTimeTaken(String.valueOf(timeTaken));
+        serviceOneEntity.setTimeTaken(String.valueOf(timeTaken)+" ms");
         serviceOneEntity.setRequestURI(request.getRequestURI());
         serviceOneEntity.setRequestMethod(request.getMethod());
         serviceOneEntity.setRequestHeaderName(getRequestHeaderNames(request));
         serviceOneEntity.setContentType(request.getContentType());
-//        serviceOneEntity.setRequestID(request.getRequestId()); //
         serviceOneEntity.setRequestID(generateRequestId());
         serviceOneEntity.setHostName(request.getServerName());
         serviceOneEntity.setResponse(responseContent);
         serviceOneEntity.setErrorTrace(errorStackTrace);
 
-        serviceOneService.saveEntity(serviceOneEntity);
+//        serviceOneService.saveEntity(serviceOneEntity);
 
 
         WebClient webClient = WebClient.create();
