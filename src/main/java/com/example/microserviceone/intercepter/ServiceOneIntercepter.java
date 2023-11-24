@@ -30,13 +30,11 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceOneIntercepter.class);
 
-
     private WebClient.Builder builder;
 
     Date requestTime = new Date(); // Capture the current date and time
 
     private long startTime;
-
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -54,7 +52,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
 //        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
         logger.info("After-complition started ");
-        ServiceOneEntity serviceOneEntity= new ServiceOneEntity();
+        ServiceOneEntity serviceOneEntity = new ServiceOneEntity();
 
         long endTime = System.currentTimeMillis();
         long timeTaken = endTime - startTime;
@@ -98,12 +96,11 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         }
 
 
-
         //for storing into database
         serviceOneEntity.setRequestTime(dateFormat.format(startTime));
         serviceOneEntity.setResponseTime(dateFormat.format(responseTime));
         serviceOneEntity.setStatusCode(response.getStatus());
-        serviceOneEntity.setTimeTaken(String.valueOf(timeTaken)+" ms");
+        serviceOneEntity.setTimeTaken(String.valueOf(timeTaken) + " ms");
         serviceOneEntity.setRequestURI(request.getRequestURI());
         serviceOneEntity.setRequestMethod(request.getMethod());
         serviceOneEntity.setRequestHeaderName(getRequestHeaderNames(request));
@@ -113,9 +110,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setResponse(responseContent);
         serviceOneEntity.setErrorTrace(errorStackTrace);
 
-//        serviceOneService.saveEntity(serviceOneEntity);
 
-
+        //webclient
         WebClient webClient = WebClient.create();
         logger.info("webclient executed");
         webClient.post()

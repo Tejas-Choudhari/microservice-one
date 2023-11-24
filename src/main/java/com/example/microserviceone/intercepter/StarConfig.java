@@ -19,9 +19,6 @@ public class StarConfig implements WebMvcConfigurer {
         registry.addInterceptor(serviceTwoIntercepter());
 
     }
-    //    public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(Intercepter());
-//    }
 
 }
 

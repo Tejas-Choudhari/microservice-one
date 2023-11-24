@@ -19,22 +19,20 @@ import java.util.List;
 public class ServiceOneController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceOneController.class);
-
-
     @Autowired
-    private ServiceOneRepo serviceOneRepo ;
+    private ServiceOneRepo serviceOneRepo;
 
     @Autowired
     private DtoConverter dtoConverter;
 
     @GetMapping("/name")
-    public String getName(@RequestParam String queryParam){
+    public String getName(@RequestParam String queryParam) {
         logger.info("inside the /name API");
         return "API-1 Called from Microservices One";
     }
 
     @GetMapping("/post")
-    public String getPost(){
+    public String getPost() {
         logger.info(" inside the /post API");
         return "API-2 Called from Miceroservices One";
     }
@@ -47,14 +45,14 @@ public class ServiceOneController {
 
 
     @PostMapping("/method")
-    public String postMethod(){
+    public String postMethod() {
         logger.info(" Inside the /method API");
         return "Post Method from microservice one is called ";
     }
 
 
     @DeleteMapping("/del")
-    public String delMethod(){
+    public String delMethod() {
         logger.info("inside the /del API ");
         return "Delete method is called from microservices one";
     }

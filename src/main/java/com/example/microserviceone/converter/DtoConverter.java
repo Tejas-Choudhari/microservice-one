@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Component
 public class DtoConverter {
 
-    public ServiceOneDto entiyToDto(ServiceOneEntity serviceOneEntity ){
+    public ServiceOneDto entiyToDto(ServiceOneEntity serviceOneEntity) {
 
         ServiceOneDto serviceOneDto = new ServiceOneDto();
 
@@ -39,7 +39,7 @@ public class DtoConverter {
                 .collect(Collectors.toList());
     }
 
-    public ServiceOneEntity dtoToEntity(ServiceOneDto serviceOneDto){
+    public ServiceOneEntity dtoToEntity(ServiceOneDto serviceOneDto) {
 
         ServiceOneEntity serviceOneEntity = new ServiceOneEntity();
 

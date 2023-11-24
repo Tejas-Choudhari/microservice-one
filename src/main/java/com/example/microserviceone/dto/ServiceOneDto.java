@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 
 @Data
 public class ServiceOneDto {
-    private String serviceName="microservice-one";
+    private String serviceName = "microservice-one";
     private long id;
 
     //extra fields

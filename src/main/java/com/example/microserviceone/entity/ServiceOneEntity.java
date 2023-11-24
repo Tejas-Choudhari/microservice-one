@@ -17,7 +17,7 @@ public class ServiceOneEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String serviceName="microservice-one";
+    private String serviceName = "microservice-one";
 
     //extra fields
     private String requestTime;

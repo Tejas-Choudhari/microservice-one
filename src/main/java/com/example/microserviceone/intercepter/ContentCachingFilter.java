@@ -20,7 +20,7 @@ public class ContentCachingFilter extends OncePerRequestFilter {
 
         ContentCachingResponseWrapper wrapperResponse = new ContentCachingResponseWrapper(response);
         ContentCachingRequestWrapper wrapperRequest = new ContentCachingRequestWrapper(request);
-        filterChain.doFilter(wrapperRequest,wrapperResponse);
+        filterChain.doFilter(wrapperRequest, wrapperResponse);
         wrapperResponse.copyBodyToResponse();
     }
 }
