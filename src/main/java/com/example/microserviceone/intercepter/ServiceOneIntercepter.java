@@ -6,6 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -18,16 +21,17 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.UUID;
 
 @Component
 @Slf4j
 public class ServiceOneIntercepter implements HandlerInterceptor {
 
-    private WebClient.Builder builder;
+    private static final Logger logger = LoggerFactory.getLogger(ServiceOneIntercepter.class);
 
-//    @Autowired
-//    private ServiceOneService serviceOneService;
+
+    private WebClient.Builder builder;
 
     Date requestTime = new Date(); // Capture the current date and time
 
@@ -36,8 +40,9 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//        return HandlerInterceptor.super.preHandle(request, response, handler);
+
         startTime = System.currentTimeMillis();
+        logger.info("Pre-handling started");
         Date requestTime = new Date(); // Capture the current date and time
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println("Request Time: " + dateFormat.format(requestTime));
@@ -48,7 +53,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
 //        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
-
+        logger.info("After-complition started ");
         ServiceOneEntity serviceOneEntity= new ServiceOneEntity();
 
         long endTime = System.currentTimeMillis();
@@ -59,6 +64,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
         //for error trace
         String errorStackTrace = null;
+        logger.info("error trace ");
         if (ex != null) {
             // Capture the exception stack trace in a variable
             StringWriter sw = new StringWriter();
@@ -70,6 +76,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
         //for response
         ContentCachingResponseWrapper wrapper;
+        logger.info("content caching for  fetching response");
         if (response instanceof ContentCachingResponseWrapper) {
             wrapper = (ContentCachingResponseWrapper) response;
         } else {
@@ -77,10 +84,25 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         }
         String responseContent = getResponse(wrapper);
 
+        //for query param
+        Map<String, String[]> queryParams = request.getParameterMap();
+
+        for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
+            String paramName = entry.getKey();
+            String[] paramValues = entry.getValue();
+            String paramValue = (paramValues != null && paramValues.length > 0) ? paramValues[0] : null;
+
+            logger.info("Query Parameter: {} = {}", paramName, paramValue);
+
+            serviceOneEntity.setQueryParam(paramValue);
+
+            // You can store or process the query parameter as needed
+        }
+
 
 
         //for storing into database
-        serviceOneEntity.setRequestTime(dateFormat.format(requestTime));
+        serviceOneEntity.setRequestTime(dateFormat.format(startTime));
         serviceOneEntity.setResponseTime(dateFormat.format(responseTime));
         serviceOneEntity.setStatusCode(response.getStatus());
         serviceOneEntity.setTimeTaken(String.valueOf(timeTaken)+" ms");
@@ -97,6 +119,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
 
         WebClient webClient = WebClient.create();
+        logger.info("webclient executed");
         webClient.post()
                 .uri("http://localhost:7000/api/data")
                 .body(BodyInserters.fromValue(serviceOneEntity))
@@ -109,6 +132,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
 
     private String getRequestHeaderNames(HttpServletRequest request) {
+        logger.info("getting header response");
         Enumeration<String> headerNames = request.getHeaderNames();
         StringBuilder headerNamesStr = new StringBuilder();
         while (headerNames.hasMoreElements()) {
@@ -119,13 +143,14 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     }
 
     private String getResponse(ContentCachingResponseWrapper contentCachingResponseWrapper) {
-
+        logger.info(" getting response");
         String response = IOUtils.toString(contentCachingResponseWrapper.getContentAsByteArray(), contentCachingResponseWrapper.getCharacterEncoding());
         return response;
     }
 
     public static String generateRequestId() {
         UUID uuid = UUID.randomUUID();
+        logger.info("Generating alphanumaric request ID ");
         String string = uuid.toString().replaceAll("-", ""); // Remove hyphens
         String alphanumericCharacters = string.replaceAll("[^A-Za-z0-9]", ""); // Remove non-alphanumeric characters
 //        int randomIndex = (int) (Math.random() * alphanumericCharacters.length());
