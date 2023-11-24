@@ -95,8 +95,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
             logger.info("Query Parameter: {} = {}", paramName, paramValue);
 
             serviceOneEntity.setQueryParam(paramValue);
-
-            // You can store or process the query parameter as needed
         }
 
 

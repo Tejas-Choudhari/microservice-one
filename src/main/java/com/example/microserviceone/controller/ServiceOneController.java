@@ -1,11 +1,18 @@
 package com.example.microserviceone.controller;
 
 
+import com.example.microserviceone.converter.DtoConverter;
+import com.example.microserviceone.dto.ServiceOneDto;
+import com.example.microserviceone.entity.ServiceOneEntity;
 import com.example.microserviceone.intercepter.ServiceOneIntercepter;
+import com.example.microserviceone.repo.ServiceOneRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -13,6 +20,12 @@ public class ServiceOneController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceOneController.class);
 
+
+    @Autowired
+    private ServiceOneRepo serviceOneRepo ;
+
+    @Autowired
+    private DtoConverter dtoConverter;
 
     @GetMapping("/name")
     public String getName(@RequestParam String queryParam){
@@ -24,6 +37,12 @@ public class ServiceOneController {
     public String getPost(){
         logger.info(" inside the /post API");
         return "API-2 Called from Miceroservices One";
+    }
+
+    @GetMapping("/findAll")
+    public List<ServiceOneDto> findAll() {
+        List<ServiceOneEntity> findAll = serviceOneRepo.findAll();
+        return dtoConverter.entitiesToDtos(findAll);
     }
 
 
