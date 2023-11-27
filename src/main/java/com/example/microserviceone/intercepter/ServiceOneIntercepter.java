@@ -36,6 +36,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
     private long startTime;
 
+
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
@@ -45,6 +47,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println("Request Time: " + dateFormat.format(requestTime));
         request.setAttribute("startTime", startTime);
+
         return true;
     }
 
@@ -52,6 +55,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
 //        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
         logger.info("After-complition started ");
+
+
         ServiceOneEntity serviceOneEntity = new ServiceOneEntity();
 
         long endTime = System.currentTimeMillis();
@@ -83,6 +88,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         String responseContent = getResponse(wrapper);
 
         //for query param
+
         Map<String, String[]> queryParams = request.getParameterMap();
 
         for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
@@ -94,7 +100,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
             serviceOneEntity.setQueryParam(paramValue);
         }
-
 
         //for storing into database
         serviceOneEntity.setRequestTime(dateFormat.format(startTime));
@@ -110,6 +115,11 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setResponse(responseContent);
         serviceOneEntity.setErrorTrace(errorStackTrace);
 
+        String client_id =request.getHeader("client_id");
+        serviceOneEntity.setClient_id(client_id);
+
+
+
 
         //webclient
         WebClient webClient = WebClient.create();
@@ -120,6 +130,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+
+//        MDC.remove("client_id");
 
 
     }
@@ -161,4 +173,14 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         int randomIndex = (int) (Math.random() * characters.length());
         return characters.substring(randomIndex, randomIndex + 1);
     }
+
+//    private String getClientId(HttpServletRequest request) {
+//         String clientId = request.getHeader("X-Client-Id");
+//        if (clientId == null || clientId.isEmpty()) {
+//         //random valuue
+//            clientId = UUID.randomUUID().toString();
+//        }
+//        return clientId;
+//    }
+
 }
