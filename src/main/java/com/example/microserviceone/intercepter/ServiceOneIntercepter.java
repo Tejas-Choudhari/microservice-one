@@ -88,24 +88,22 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         String responseContent = getResponse(wrapper);
 
         //for query param
-
         Map<String, String[]> queryParams = request.getParameterMap();
-
+        StringBuilder queryParamsStr = new StringBuilder();
         for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
             String paramName = entry.getKey();
             String[] paramValues = entry.getValue();
             String paramValue = (paramValues != null && paramValues.length > 0) ? paramValues[0] : null;
 
-            logger.info("Query Parameter: {} = {}", paramName, paramValue);
-
-            serviceOneEntity.setQueryParam(paramValue);
+            queryParamsStr.append(paramName + ": " + paramValue + ", ");
+//            serviceOneEntity.addQueryParam(paramName, paramValue);
         }
 
         //for storing into database
         serviceOneEntity.setRequestTime(dateFormat.format(startTime));
         serviceOneEntity.setResponseTime(dateFormat.format(responseTime));
         serviceOneEntity.setStatusCode(response.getStatus());
-        serviceOneEntity.setTimeTaken(String.valueOf(timeTaken) + " ms");
+        serviceOneEntity.setTimeTaken((timeTaken) + " ms");
         serviceOneEntity.setRequestURI(request.getRequestURI());
         serviceOneEntity.setRequestMethod(request.getMethod());
         serviceOneEntity.setRequestHeaderName(getRequestHeaderNames(request));
@@ -114,6 +112,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setHostName(request.getServerName());
         serviceOneEntity.setResponse(responseContent);
         serviceOneEntity.setErrorTrace(errorStackTrace);
+        serviceOneEntity.setQueryParam(queryParamsStr.toString());
+
 
         String client_id =request.getHeader("client_id");
         serviceOneEntity.setClient_id(client_id);
@@ -140,12 +140,21 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     private String getRequestHeaderNames(HttpServletRequest request) {
         logger.info("getting header response");
         Enumeration<String> headerNames = request.getHeaderNames();
-        StringBuilder headerNamesStr = new StringBuilder();
+        StringBuilder headersStr = new StringBuilder();
+
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            headerNamesStr.append(headerName).append(", ");
+            headersStr.append(headerName).append(": ");
+
+            Enumeration<String> headerValues = request.getHeaders(headerName);
+            while (headerValues.hasMoreElements()) {
+                String headerValue = headerValues.nextElement();
+                headersStr.append(headerValue).append(", ");
+            }
+            headersStr.delete(headersStr.length() - 2, headersStr.length());
+            headersStr.append(", ");
         }
-        return headerNamesStr.toString();
+        return headersStr.toString();
     }
 
     private String getResponse(ContentCachingResponseWrapper contentCachingResponseWrapper) {
@@ -159,7 +168,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         logger.info("Generating alphanumaric request ID ");
         String string = uuid.toString().replaceAll("-", ""); // Remove hyphens
         String alphanumericCharacters = string.replaceAll("[^A-Za-z0-9]", ""); // Remove non-alphanumeric characters
-//        int randomIndex = (int) (Math.random() * alphanumericCharacters.length());
 
         while (alphanumericCharacters.length() < 10) {
             alphanumericCharacters += generateRandomAlphanumeric();
@@ -174,13 +182,5 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         return characters.substring(randomIndex, randomIndex + 1);
     }
 
-//    private String getClientId(HttpServletRequest request) {
-//         String clientId = request.getHeader("X-Client-Id");
-//        if (clientId == null || clientId.isEmpty()) {
-//         //random valuue
-//            clientId = UUID.randomUUID().toString();
-//        }
-//        return clientId;
-//    }
 
 }
