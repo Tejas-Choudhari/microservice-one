@@ -8,15 +8,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 //class to configuration of the intercepter that what controller should implement the intercepter
 @Configuration
 public class StarConfig implements WebMvcConfigurer {
+
     @Bean
-    public ServiceOneIntercepter serviceTwoIntercepter() {
+    public ServiceOneIntercepter serviceOneIntercepter() {
         return new ServiceOneIntercepter();
     }
 
+//    @Autowired
+//    private ServiceOneIntercepter serviceOneIntercepter;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-
-        registry.addInterceptor(serviceTwoIntercepter());
+        registry.addInterceptor(serviceOneIntercepter());
 
     }
 

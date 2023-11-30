@@ -8,8 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -21,13 +20,11 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.UUID;
 
 @Component
 @Slf4j
 public class ServiceOneIntercepter implements HandlerInterceptor {
-
     private static final Logger logger = LoggerFactory.getLogger(ServiceOneIntercepter.class);
 
     private WebClient.Builder builder;
@@ -35,8 +32,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     Date requestTime = new Date(); // Capture the current date and time
 
     private long startTime;
-
-
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -53,9 +48,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-//        HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
         logger.info("After-complition started ");
-
 
         ServiceOneEntity serviceOneEntity = new ServiceOneEntity();
 
@@ -76,7 +69,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
             System.out.println(" error trace : " + errorStackTrace);
         }
 
-
         //for response
         ContentCachingResponseWrapper wrapper;
         logger.info("content caching for  fetching response");
@@ -87,17 +79,18 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         }
         String responseContent = getResponse(wrapper);
 
-        //for query param
-        Map<String, String[]> queryParams = request.getParameterMap();
-        StringBuilder queryParamsStr = new StringBuilder();
-        for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
-            String paramName = entry.getKey();
-            String[] paramValues = entry.getValue();
-            String paramValue = (paramValues != null && paramValues.length > 0) ? paramValues[0] : null;
 
-            queryParamsStr.append(paramName + ": " + paramValue + ", ");
-//            serviceOneEntity.addQueryParam(paramName, paramValue);
-        }
+        //for query param
+        
+//
+//        Map<String, String[]> queryParams = request.getParameterMap();
+//        StringBuilder queryParamsStr = new StringBuilder();
+//        for (Map.Entry<String, String[]> entry : queryParams.entrySet()) {
+//            String paramName = entry.getKey();
+//            String[] paramValues = entry.getValue();
+//            String paramValue = (paramValues != null && paramValues.length > 0) ? paramValues[0] : null;
+//            queryParamsStr.append(paramName + ": " + paramValue + ", ");
+//        }
 
         //for storing into database
         serviceOneEntity.setRequestTime(dateFormat.format(startTime));
@@ -112,31 +105,29 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setHostName(request.getServerName());
         serviceOneEntity.setResponse(responseContent);
         serviceOneEntity.setErrorTrace(errorStackTrace);
-        serviceOneEntity.setQueryParam(queryParamsStr.toString());
-
+        serviceOneEntity.setQueryParam(request.getQueryString());
 
         String client_id =request.getHeader("client_id");
         serviceOneEntity.setClient_id(client_id);
-
-
-
 
         //webclient
         WebClient webClient = WebClient.create();
         logger.info("webclient executed");
         webClient.post()
-                .uri("http://localhost:7000/api/data")
+//                .uri("http://localhost:7000/api/data")
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("http")
+                        .host("localhost")
+                        .port(7000)
+                        .path("/api/data")
+//                        .queryParam("")
+                        .build())
+//                .header("header")
                 .body(BodyInserters.fromValue(serviceOneEntity))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-
-//        MDC.remove("client_id");
-
-
     }
-
-
     private String getRequestHeaderNames(HttpServletRequest request) {
         logger.info("getting header response");
         Enumeration<String> headerNames = request.getHeaderNames();
@@ -181,6 +172,4 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         int randomIndex = (int) (Math.random() * characters.length());
         return characters.substring(randomIndex, randomIndex + 1);
     }
-
-
 }

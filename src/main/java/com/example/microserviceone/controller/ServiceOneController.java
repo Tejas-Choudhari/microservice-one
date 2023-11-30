@@ -26,8 +26,9 @@ public class ServiceOneController {
     @Autowired
     private DtoConverter dtoConverter;
 
+
     @GetMapping("/name")
-    public String getName(@RequestHeader Map<String ,String> header, @RequestParam String queryParam) {
+    public String getName(@RequestHeader Map<String ,String> header, @RequestParam String queryParam ,@RequestParam int age) {
         logger.info("inside the /name API");
         return "API-1 Called from Microservices One";
     }
