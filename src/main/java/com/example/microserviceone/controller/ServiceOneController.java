@@ -45,17 +45,21 @@ public class ServiceOneController {
         return dtoConverter.entitiesToDtos(findAll);
     }
 
-
     @PostMapping("/method")
     public String postMethod(@RequestHeader Map<String ,String>header) {
         logger.info(" Inside the /method API");
         return "Post Method from microservice one is called ";
     }
 
-
     @DeleteMapping("/del")
     public String delMethod(@RequestHeader Map<String ,String>header) {
         logger.info("inside the /del API ");
         return "Delete method is called from microservices one";
+    }
+
+    @GetMapping("/null")
+    public String nullPointerApi(){
+        Double.parseDouble("cwjhd");
+        return "hi hi hi ";
     }
 }

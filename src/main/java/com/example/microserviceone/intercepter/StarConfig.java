@@ -14,9 +14,6 @@ public class StarConfig implements WebMvcConfigurer {
         return new ServiceOneIntercepter();
     }
 
-//    @Autowired
-//    private ServiceOneIntercepter serviceOneIntercepter;
-
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(serviceOneIntercepter());
