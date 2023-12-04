@@ -1,5 +1,4 @@
 package com.example.microserviceone.intercepter;
-
 import com.example.microserviceone.entity.ServiceOneEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,9 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -52,6 +51,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
         ServiceOneEntity serviceOneEntity = new ServiceOneEntity();
 
+        //for time
         long endTime = System.currentTimeMillis();
         long timeTaken = endTime - startTime;
         Date responseTime = new Date(); // Capture the current date and time for response
@@ -59,7 +59,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
 
         //for response
-        ContentCachingResponseWrapper wrapper;
+        ContentCachingResponseWrapper wrapper;  // to get the response for every call of API
         logger.info("content caching for  fetching response");
         if (response instanceof ContentCachingResponseWrapper) {
             wrapper = (ContentCachingResponseWrapper) response;
@@ -83,26 +83,33 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setErrorTrace(errorStackTreeThread(ex));
         serviceOneEntity.setQueryParam(request.getQueryString());
 
-        String client_id =request.getHeader("client_id");
+        String client_id = request.getHeader("client_id");
         serviceOneEntity.setClient_id(client_id);
 
         //webclient
-        WebClient webClient = WebClient.create();
-        logger.info("webclient executed");
-        webClient.post()
+        try {
+            WebClient webClient = WebClient.create();
+            logger.info("webclient executed");
+            webClient.post()
 //                .uri("http://localhost:7000/api/data")
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("localhost")
-                        .port(7000)
-                        .path("/api/data")
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("http")
+                            .host("localhost")
+                            .port(7000)
+                            .path("/api/data")
 //                        .queryParam("")
-                        .build())
-                .header("header")
-                .body(BodyInserters.fromValue(serviceOneEntity))
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
+                            .build())
+                    .header("header")
+                    .body(BodyInserters.fromValue(serviceOneEntity))
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .toFuture();
+        } catch (WebClientResponseException clientException) {
+            logger.error("Error while sending data using WebClient. HTTP Status: {}", clientException.getRawStatusCode());
+            logger.error("Response body: {}", clientException.getResponseBodyAsString());
+        } catch (Exception webClientException) {
+            logger.error("Error while sending data using WebClient", webClientException);
+        }
     }
 
     private String getRequestHeaderNames(HttpServletRequest request) {
@@ -128,7 +135,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
                 return headersStr.toString();
             }catch (Exception e) {
-                logger.error("Error getting header name asynchronously", e);
+                logger.error("Error6 getting header name asynchronously", e);
                 return "Error occurred";
             }
         });
@@ -191,7 +198,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
                 String errorStackTrace = null;
                 logger.info("error trace ");
                 if (ex != null) {
-                    // Capture the exception stack trace in a variable
                     StringWriter sw = new StringWriter();
                     ex.printStackTrace(new PrintWriter(sw));
                     errorStackTrace = sw.toString();
