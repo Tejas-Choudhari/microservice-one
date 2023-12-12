@@ -55,9 +55,4 @@ public class ServiceOneController {
         return "Delete method is called from microservices one";
     }
 
-    @GetMapping("/null")
-    public String nullPointerApi(){
-        Double.parseDouble("cwjhd");
-        return "hi hi hi ";
-    }
 }

@@ -25,8 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public class ServiceOneIntercepter implements HandlerInterceptor {
     private static final Logger logger = LoggerFactory.getLogger(ServiceOneIntercepter.class);
 
-    private WebClient.Builder builder;
-
+    String error = "Error occured";
     Date requestTime = new Date(); // Capture the current date and time
 
     private long startTime;
@@ -36,9 +35,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
         startTime = System.currentTimeMillis();
         logger.info("Pre-handling started");
-        Date requestTime = new Date(); // Capture the current date and time
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println("Request Time: " + dateFormat.format(requestTime));
         request.setAttribute("startTime", startTime);
 
         return true;
@@ -83,8 +79,8 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
         serviceOneEntity.setErrorTrace(errorStackTreeThread(ex));
         serviceOneEntity.setQueryParam(request.getQueryString());
 
-        String client_id = request.getHeader("client_id");
-        serviceOneEntity.setClient_id(client_id);
+        String clientId = request.getHeader("client_id");
+        serviceOneEntity.setClientId(clientId);
 
         //webclient
         try {
@@ -99,13 +95,13 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
                             .path("/api/data")
 //                        .queryParam("")
                             .build())
-                    .header("header")
+                    .header("header","Header-value")
                     .body(BodyInserters.fromValue(serviceOneEntity))
                     .retrieve()
                     .bodyToMono(String.class)
                     .toFuture();
         } catch (WebClientResponseException clientException) {
-            logger.error("Error while sending data using WebClient. HTTP Status: {}", clientException.getRawStatusCode());
+            logger.error("Error while sending data using WebClient. HTTP Status: {}", clientException.getStatusCode());
             logger.error("Response body: {}", clientException.getResponseBodyAsString());
         } catch (Exception webClientException) {
             logger.error("Error while sending data using WebClient", webClientException);
@@ -136,7 +132,7 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
                 return headersStr.toString();
             }catch (Exception e) {
                 logger.error("Error6 getting header name asynchronously", e);
-                return "Error occurred";
+                return error;
             }
         });
         logger.info(" header name Thread executed");
@@ -148,14 +144,12 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
             try {
-//                Thread.sleep(1000);
                 logger.info("Getting response");
-                String response = IOUtils.toString(contentCachingResponseWrapper.getContentAsByteArray(),
+                return  IOUtils.toString(contentCachingResponseWrapper.getContentAsByteArray(),
                         contentCachingResponseWrapper.getCharacterEncoding());
-                return response;
             } catch (Exception e) {
                 logger.error("Error getting response asynchronously", e);
-                return "Error occurred";
+                return error;
             }
         });
         logger.info("thread executed");
@@ -165,10 +159,10 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
     public static String generateRequestId() {
         UUID uuid = UUID.randomUUID();
         logger.info("Generating alphanumaric request ID ");
-        String string = uuid.toString().replaceAll("-", ""); // Remove hyphens
-        String alphanumericCharacters = string.replaceAll("[^A-Za-z0-9]", ""); // Remove non-alphanumeric characters
+        String string = uuid.toString().replace("-", ""); // Remove hyphens
+        StringBuilder alphanumericCharacters = new StringBuilder(string.replaceAll("[^A-Za-z0-9]", "")); // Remove non-alphanumeric characters
         while (alphanumericCharacters.length() < 10) {
-            alphanumericCharacters += generateRandomAlphanumeric();
+            alphanumericCharacters.append(generateRandomAlphanumeric());
         }
         return alphanumericCharacters.substring(0, 10);
     }
@@ -201,7 +195,6 @@ public class ServiceOneIntercepter implements HandlerInterceptor {
                     StringWriter sw = new StringWriter();
                     ex.printStackTrace(new PrintWriter(sw));
                     errorStackTrace = sw.toString();
-                    System.out.println(" error trace : " + errorStackTrace);
                 }
                 return errorStackTrace;
             }catch (Exception e) {
